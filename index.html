@@ -364,6 +364,22 @@
       color: #e5e7eb;
       min-height: 1.2em;
     }
+
+    /* Roter Button für +Proton */
+.add-proton-red {
+  background: #dc2626; /* Rot */
+  color: #fff;         /* Weißer Text */
+  border: 1px solid #7f1d1d;
+}
+
+.add-proton-red:hover {
+  background: #ef4444; /* etwas helleres Rot beim Hover */
+}
+
+.add-proton-red:active {
+  background: #b91c1c; /* dunkler beim Drücken */
+}
+    
   </style>
 </head>
 <body>
@@ -427,9 +443,9 @@
         </div>
 
         <div class="controls-grid">
-          <button id="addProton">
-            1 Proton dazu
-          </button>
+       <button id="addProton" class="add-proton-red">
+        1 Proton dazu
+        </button>
           <button id="removeProton" class="secondary">
             1 Proton weg
           </button>
