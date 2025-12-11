@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Atommodelle – Baue Atome und Ionen</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1e293b 0, #020617 55%, #000 100%);
+      color: #e5e7eb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .app {
+      max-width: 1100px;
+      width: 100%;
+      background: rgba(15, 23, 42, 0.95);
+      border-radius: 1.5rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      padding: 1.5rem;
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.4fr);
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 800px) {
+      .app {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    h1 {
+      margin: 0 0 0.5rem;
+      font-size: 1.6rem;
+      color: #f9fafb;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: #9ca3af;
+      margin-bottom: 1rem;
+    }
+
+    .task-box,
+    .control-box,
+    .info-box {
+      background: rgba(15, 23, 42, 0.95);
+      border-radius: 1rem;
+      padding: 1rem 1.1rem;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    .task-title {
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      font-size: 1rem;
+      color: #f97316;
+    }
+
+    .task-text {
+      font-size: 0.95rem;
+      line-height: 1.4;
+      color: #e5e7eb;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      border-radius: 999px;
+      padding: 0.1rem 0.5rem;
+      font-size: 0.75rem;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: #cbd5f5;
+      margin-top: 0.3rem;
+    }
+
+    .tag span {
+      font-size: 0.95rem;
+    }
+
+    .layout-left {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .layout-right {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .atom-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0.5rem;
+    }
+
+    .atom-visual {
+      position: relative;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle at center, #020617 0, #020617 40%, #020617 100%);
+      box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);
+      overflow: visible;
+    }
+
+    .nucleus {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: radial-gradient(circle at top, #f97316 0, #b91c1c 60%, #7f1d1d 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fef2f2;
+      font-size: 0.75rem;
+      text-align: center;
+      border: 2px solid rgba(248, 250, 252, 0.4);
+    }
+
+    .nucleus strong {
+      font-size: 0.9rem;
+    }
+
+    .shell {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px dashed rgba(148, 163, 184, 0.6);
+      pointer-events: none;
+    }
+
+    .electron {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #38bdf8;
+      box-shadow: 0 0 10px #38bdf8;
+      transform: translate(-50%, -50%);
+    }
+
+    .panel-title {
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      font-size: 0.95rem;
+      color: #e5e7eb;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.4rem;
+      font-size: 0.9rem;
+    }
+
+    .stat {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 0.6rem;
+      padding: 0.35rem 0.5rem;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #9ca3af;
+    }
+
+    .stat-value {
+      font-size: 0.95rem;
+    }
+
+    .stat-big {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+
+    .stat-charge-positive {
+      color: #22c55e;
+    }
+
+    .stat-charge-negative {
+      color: #f97316;
+    }
+
+    .stat-charge-neutral {
+      color: #e5e7eb;
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background: #1d4ed8;
+      color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      transition: transform 0.06s ease, box-shadow 0.06s ease, background 0.1s ease;
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.8);
+    }
+
+    button span.icon {
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    button.secondary {
+      background: #0f172a;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+    }
+
+    button.nav {
+      background: #22c55e;
+      color: #022c22;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.9);
+      filter: brightness(1.05);
+    }
+
+    button:active {
+      transform: translateY(1px) scale(0.98);
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.9);
+      filter: brightness(0.95);
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: default;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .feedback {
+      margin-top: 0.5rem;
+      font-size: 0.95rem;
+      min-height: 1.2em;
+    }
+
+    .feedback.ok {
+      color: #22c55e;
+    }
+
+    .feedback.error {
+      color: #f97316;
+    }
+
+    .level-indicator {
+      font-size: 0.85rem;
+      color: #9ca3af;
+      margin-top: 0.5rem;
+    }
+
+    .level-indicator strong {
+      color: #e5e7eb;
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.45rem;
+    }
+
+    .chip {
+      font-size: 0.75rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: #cbd5f5;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="layout-left">
+      <div>
+        <h1>Atom-Spiel: Baue Atome &amp; Ionen</h1>
+        <div class="subtitle">
+          Füge Protonen (p⁺) und Elektronen (e⁻) hinzu oder nimm sie weg, um die Vorgabe zu erfüllen.
+          Ideal für den Unterricht: läuft einfach im Browser.
+        </div>
+      </div>
+
+      <div class="task-box">
+        <div class="task-title">Aktuelle Aufgabe</div>
+        <div class="task-text" id="taskDescription"></div>
+        <div class="chip-row">
+          <div class="chip" id="taskTypeChip"></div>
+          <div class="chip" id="taskTargetChip"></div>
+        </div>
+        <div class="level-indicator" id="levelIndicator"></div>
+      </div>
+
+      <div class="control-box">
+        <div class="panel-title">Steuerung</div>
+        <div class="stats-grid" style="margin-bottom:0.5rem;">
+          <div class="stat">
+            <div class="stat-label">Protonen (p⁺)</div>
+            <div class="stat-value stat-big" id="protonCount">0</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Elektronen (e⁻)</div>
+            <div class="stat-value stat-big" id="electronCount">0</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Atomnummer Z</div>
+            <div class="stat-value" id="atomicNumber">0</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Aktueller Name</div>
+            <div class="stat-value" id="elementName">–</div>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat">
+            <div class="stat-label">Ladung</div>
+            <div class="stat-value stat-big" id="chargeDisplay">0</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Soll</div>
+            <div class="stat-value" id="targetInfo">Ziel: –</div>
+          </div>
+        </div>
+
+        <div class="controls-grid">
+          <button id="addProton">
+            <span class="icon">+</span> Proton
+          </button>
+          <button id="removeProton" class="secondary">
+            <span class="icon">−</span> Proton
+          </button>
+          <button id="addElectron">
+            <span class="icon">+</span> Elektron
+          </button>
+          <button id="removeElectron" class="secondary">
+            <span class="icon">−</span> Elektron
+          </button>
+          <button id="resetLevel" class="secondary">
+            Zurücksetzen
+          </button>
+          <button id="nextLevel" class="nav">
+            Nächste Aufgabe
+          </button>
+        </div>
+
+        <div class="feedback" id="feedback"></div>
+      </div>
+    </div>
+
+    <div class="layout-right">
+      <div class="info-box">
+        <div class="panel-title">Atommodell</div>
+        <div class="atom-wrapper">
+          <div class="atom-visual" id="atomVisual">
+            <div class="nucleus" id="nucleusLabel">
+              <strong>p⁺ = 0</strong>
+              e⁻ = 0
+            </div>
+            <!-- Schalen & Elektronen werden per JavaScript eingefügt -->
+          </div>
+        </div>
+        <div style="font-size:0.85rem;color:#9ca3af;margin-top:0.3rem;">
+          Vereinfachtes Bohr-Modell: K-, L- und M-Schale werden gezeigt.  
+          Die Zahl der Elektronen pro Schale ist physikalisch grob, aber für den Einstieg ausreichend.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Datengrundlage ------------------------------------------------------
+
+    const ELEMENT_NAMES = {
+      1: "Wasserstoff (H)",
+      2: "Helium (He)",
+      3: "Lithium (Li)",
+      4: "Beryllium (Be)",
+      5: "Bor (B)",
+      6: "Kohlenstoff (C)",
+      7: "Stickstoff (N)",
+      8: "Sauerstoff (O)",
+      9: "Fluor (F)",
+      10: "Neon (Ne)",
+      11: "Natrium (Na)",
+      12: "Magnesium (Mg)",
+      13: "Aluminium (Al)",
+      14: "Silicium (Si)",
+      15: "Phosphor (P)",
+      16: "Schwefel (S)",
+      17: "Chlor (Cl)",
+      18: "Argon (Ar)",
+      19: "Kalium (K)",
+      20: "Calcium (Ca)"
+    };
+
+    // Aufgaben: Du kannst hier leicht weitere hinzufügen oder ändern
+    const LEVELS = [
+      {
+        description: "Baue ein neutrales Helium-Atom.",
+        type: "neutrales Atom",
+        symbol: "He",
+        targetProtons: 2,
+        targetElectrons: 2
+      },
+      {
+        description: "Baue ein neutrales Sauerstoff-Atom.",
+        type: "neutrales Atom",
+        symbol: "O",
+        targetProtons: 8,
+        targetElectrons: 8
+      },
+      {
+        description: "Baue ein neutrales Natrium-Atom.",
+        type: "neutrales Atom",
+        symbol: "Na",
+        targetProtons: 11,
+        targetElectrons: 11
+      },
+      {
+        description: "Baue ein Natrium-Ion Na⁺ (einfach positiv).",
+        type: "Kation (positiv)",
+        symbol: "Na⁺",
+        targetProtons: 11,
+        targetElectrons: 10
+      },
+      {
+        description: "Baue ein Chlorid-Ion Cl⁻ (einfach negativ).",
+        type: "Anion (negativ)",
+        symbol: "Cl⁻",
+        targetProtons: 17,
+        targetElectrons: 18
+      },
+      {
+        description: "Baue ein zweifach positiv geladenes Magnesium-Ion Mg²⁺.",
+        type: "Kation (positiv)",
+        symbol: "Mg²⁺",
+        targetProtons: 12,
+        targetElectrons: 10
+      },
+      {
+        description: "Baue ein zweifach negativ geladenes Sauerstoff-Ion O²⁻.",
+        type: "Anion (negativ)",
+        symbol: "O²⁻",
+        targetProtons: 8,
+        targetElectrons: 10
+      }
+    ];
+
+    // --- Zustand -------------------------------------------------------------
+
+    let currentLevelIndex = 0;
+    let protons = 0;
+    let electrons = 0;
+
+    // --- DOM-Elemente --------------------------------------------------------
+
+    const taskDescriptionEl = document.getElementById("taskDescription");
+    const taskTypeChipEl = document.getElementById("taskTypeChip");
+    const taskTargetChipEl = document.getElementById("taskTargetChip");
+    const levelIndicatorEl = document.getElementById("levelIndicator");
+
+    const protonCountEl = document.getElementById("protonCount");
+    const electronCountEl = document.getElementById("electronCount");
+    const atomicNumberEl = document.getElementById("atomicNumber");
+    const elementNameEl = document.getElementById("elementName");
+    const chargeDisplayEl = document.getElementById("chargeDisplay");
+    const targetInfoEl = document.getElementById("targetInfo");
+    const feedbackEl = document.getElementById("feedback");
+
+    const atomVisualEl = document.getElementById("atomVisual");
+    const nucleusLabelEl = document.getElementById("nucleusLabel");
+
+    const addProtonBtn = document.getElementById("addProton");
+    const removeProtonBtn = document.getElementById("removeProton");
+    const addElectronBtn = document.getElementById("addElectron");
+    const removeElectronBtn = document.getElementById("removeElectron");
+    const resetLevelBtn = document.getElementById("resetLevel");
+    const nextLevelBtn = document.getElementById("nextLevel");
+
+    // --- Hilfsfunktionen -----------------------------------------------------
+
+    function getCharge(p, e) {
+      return p - e;
+    }
+
+    function formatCharge(charge) {
+      if (charge === 0) return "0 (neutral)";
+      if (charge > 0) return `+${charge} (Kation)`;
+      return `${charge} (Anion)`;
+    }
+
+    function updateElementName(z) {
+      return ELEMENT_NAMES[z] || "unbekannt (Z ≤ 20)";
+    }
+
+    function setFeedbackOk(message) {
+      feedbackEl.textContent = message;
+      feedbackEl.classList.remove("error");
+      feedbackEl.classList.add("ok");
+    }
+
+    function setFeedbackError(message) {
+      feedbackEl.textContent = message;
+      feedbackEl.classList.remove("ok");
+      feedbackEl.classList.add("error");
+    }
+
+    function clearFeedback() {
+      feedbackEl.textContent = "";
+      feedbackEl.classList.remove("ok", "error");
+    }
+
+    // Zeichnet Bohr-Schalen mit bis zu 3 Schalen
+    function renderAtom() {
+      // Vorhandene Schalen & Elektronen entfernen (aber nicht den Kern)
+      const shellsAndElectrons = atomVisualEl.querySelectorAll(".shell, .electron");
+      shellsAndElectrons.forEach(el => el.remove());
+
+      // Bohr-Schalen: K=2, L=8, M=8
+      const maxShells = 3;
+      const shellCapacities = [2, 8, 8];
+      let remainingElectrons = electrons;
+
+      const centerX = 130;
+      const centerY = 130;
+      const radii = [55, 90, 125];
+
+      for (let i = 0; i < maxShells; i++) {
+        const shell = document.createElement("div");
+        const r = radii[i];
+        shell.className = "shell";
+        shell.style.width = `${2 * r}px`;
+        shell.style.height = `${2 * r}px`;
+        shell.style.left = `${centerX - r}px`;
+        shell.style.top = `${centerY - r}px`;
+        atomVisualEl.appendChild(shell);
+
+        const electronsInShell = Math.min(remainingElectrons, shellCapacities[i]);
+        remainingElectrons -= electronsInShell;
+
+        for (let j = 0; j < electronsInShell; j++) {
+          const angle = (2 * Math.PI * j) / electronsInShell;
+          const ex = centerX + r * Math.cos(angle);
+          const ey = centerY + r * Math.sin(angle);
+          const eEl = document.createElement("div");
+          eEl.className = "electron";
+          eEl.style.left = `${ex}px`;
+          eEl.style.top = `${ey}px`;
+          atomVisualEl.appendChild(eEl);
+        }
+      }
+
+      // Kernbeschriftung
+      nucleusLabelEl.innerHTML = `<strong>p⁺ = ${protons}</strong><br>e⁻ = ${electrons}`;
+    }
+
+    function updateUI() {
+      const level = LEVELS[currentLevelIndex];
+      const charge = getCharge(protons, electrons);
+
+      protonCountEl.textContent = protons;
+      electronCountEl.textContent = electrons;
+      atomicNumberEl.textContent = protons;
+      elementNameEl.textContent = updateElementName(protons);
+
+      chargeDisplayEl.textContent = formatCharge(charge);
+      chargeDisplayEl.classList.remove(
+        "stat-charge-positive",
+        "stat-charge-negative",
+        "stat-charge-neutral"
+      );
+      if (charge > 0) {
+        chargeDisplayEl.classList.add("stat-charge-positive");
+      } else if (charge < 0) {
+        chargeDisplayEl.classList.add("stat-charge-negative");
+      } else {
+        chargeDisplayEl.classList.add("stat-charge-neutral");
+      }
+
+      targetInfoEl.textContent =
+        `Ziel: p⁺ = ${level.targetProtons}, e⁻ = ${level.targetElectrons} (Ladung ${formatCharge(level.targetProtons - level.targetElectrons)})`;
+
+      renderAtom();
+
+      checkSolution(false);
+    }
+
+    function loadLevel(index) {
+      currentLevelIndex = index % LEVELS.length;
+      const level = LEVELS[currentLevelIndex];
+
+      taskDescriptionEl.textContent = level.description;
+      taskTypeChipEl.textContent = `Typ: ${level.type}`;
+      taskTargetChipEl.textContent = `Symbol: ${level.symbol}`;
+      levelIndicatorEl.innerHTML = `Aufgabe <strong>${currentLevelIndex + 1}</strong> von <strong>${LEVELS.length}</strong>`;
+
+      // sinnvolle Startwerte: neutrales Atom des Elements
+      protons = level.targetProtons;
+      electrons = level.type.includes("neutrales") ? level.targetProtons : level.targetElectrons;
+
+      clearFeedback();
+      nextLevelBtn.disabled = false;
+      updateUI();
+    }
+
+    function checkSolution(showFeedback = true) {
+      const level = LEVELS[currentLevelIndex];
+      const solved = protons === level.targetProtons && electrons === level.targetElectrons;
+
+      if (solved) {
+        if (showFeedback) {
+          setFeedbackOk("Richtig! Aufgabe gelöst ✅");
+        }
+        nextLevelBtn.disabled = false;
+      } else {
+        if (showFeedback) {
+          setFeedbackError("Noch nicht richtig. Vergleiche Soll- und Ist-Werte.");
+        }
+      }
+      return solved;
+    }
+
+    // --- Event-Handler -------------------------------------------------------
+
+    addProtonBtn.addEventListener("click", () => {
+      if (protons >= 20) {
+        setFeedbackError("Für dieses Spiel sind nur Elemente mit Z ≤ 20 vorgesehen.");
+        return;
+      }
+      protons++;
+      clearFeedback();
+      updateUI();
+    });
+
+    removeProtonBtn.addEventListener("click", () => {
+      if (protons <= 0) return;
+      protons--;
+      clearFeedback();
+      updateUI();
+    });
+
+    addElectronBtn.addEventListener("click", () => {
+      // Etwas Spielraum, aber nicht unendlich
+      if (electrons >= 24) {
+        setFeedbackError("Zu viele Elektronen für dieses Modell.");
+        return;
+      }
+      electrons++;
+      clearFeedback();
+      updateUI();
+    });
+
+    removeElectronBtn.addEventListener("click", () => {
+      if (electrons <= 0) return;
+      electrons--;
+      clearFeedback();
+      updateUI();
+    });
+
+    resetLevelBtn.addEventListener("click", () => {
+      const level = LEVELS[currentLevelIndex];
+      protons = level.targetProtons;
+      electrons = level.type.includes("neutrales") ? level.targetProtons : level.targetElectrons;
+      clearFeedback();
+      updateUI();
+    });
+
+    nextLevelBtn.addEventListener("click", () => {
+      const wasSolved = checkSolution(false);
+      if (!wasSolved) {
+        // einfache Rückmeldung, optional
+        setFeedbackError("Versuch's noch einmal – die Aufgabe ist noch nicht gelöst.");
+        return;
+      }
+      const nextIndex = (currentLevelIndex + 1) % LEVELS.length;
+      loadLevel(nextIndex);
+    });
+
+    // --- Start ---------------------------------------------------------------
+
+    loadLevel(0);
+  </script>
+</body>
+</html>
