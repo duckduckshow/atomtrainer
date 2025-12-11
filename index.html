@@ -259,6 +259,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      gap: 1rem;
       padding: 0.5rem;
     }
 
@@ -272,8 +273,8 @@
       overflow: visible;
     }
 
-    /* Kern jetzt nur als Kreis (Outline) */
-    .nucleus {
+    /* nur der Kernkreis, ohne Text */
+    .nucleus-circle {
       position: absolute;
       left: 50%;
       top: 50%;
@@ -282,18 +283,7 @@
       height: 80px;
       border-radius: 50%;
       background: transparent;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: #fef2f2;
-      font-size: 0.75rem;
-      text-align: center;
       border: 2px solid rgba(248, 250, 252, 0.8);
-    }
-
-    .nucleus strong {
-      font-size: 0.9rem;
     }
 
     .shell {
@@ -322,6 +312,33 @@
       background: #f97316;
       box-shadow: 0 0 6px #f97316;
       transform: translate(-50%, -50%);
+    }
+
+    /* Anzeige p⁺ / e⁻ neben dem Atom */
+    .nucleus-info {
+      font-size: 1rem;
+      line-height: 1.4;
+      min-width: 120px;
+    }
+
+    .nucleus-info-line {
+      margin-bottom: 0.2rem;
+    }
+
+    .nucleus-info-label {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      display: block;
+    }
+
+    .proton-text {
+      color: #f97316;
+      font-weight: 600;
+    }
+
+    .electron-text {
+      color: #38bdf8;
+      font-weight: 600;
     }
 
     /* Volles Periodensystem */
@@ -486,11 +503,15 @@
         <div class="panel-title">Atommodell</div>
         <div class="atom-wrapper">
           <div class="atom-visual" id="atomVisual">
-            <div class="nucleus" id="nucleusLabel">
-              <strong>p⁺ = 0</strong>
-              e⁻ = 0
-            </div>
+            <div class="nucleus-circle"></div>
             <!-- Schalen, Elektronen & Protonen werden per JavaScript eingefügt -->
+          </div>
+          <div class="nucleus-info" id="nucleusLabel">
+            <div class="nucleus-info-line">
+              <span class="nucleus-info-label">Kernladung / Hülle</span>
+              <div><span class="proton-text">p⁺ = 0</span></div>
+              <div><span class="electron-text">e⁻ = 0</span></div>
+            </div>
           </div>
         </div>
 
@@ -571,7 +592,7 @@
       54: "Xenon wird in Hochleistungsblitzlampen und in Ionenantrieben für Raumsonden verwendet."
     };
 
-    // Aufgaben (jetzt 10)
+    // Aufgaben (10)
     const LEVELS = [
       {
         description: "Baue ein neutrales Helium-Atom.",
@@ -766,23 +787,62 @@
         }
       }
 
-      // Protonen-Kringel im Kern (max. 16 sichtbar)
+      // Protonen-Punkte im Kern (max. 16 sichtbar, auf zwei Kreisen)
       const maxVisibleProtons = 16;
       const visibleProtons = Math.min(protons, maxVisibleProtons);
-      const protonRadius = 26; // kleiner Kreis innerhalb des Kerns
+      const innerRadius = 14;
+      const outerRadius = 26;
 
-      for (let j = 0; j < visibleProtons; j++) {
-        const angle = (2 * Math.PI * j) / (visibleProtons || 1);
-        const px = centerX + protonRadius * Math.cos(angle);
-        const py = centerY + protonRadius * Math.sin(angle);
-        const pEl = document.createElement("div");
-        pEl.className = "proton-dot";
-        pEl.style.left = `${px}px`;
-        pEl.style.top = `${py}px`;
-        atomVisualEl.appendChild(pEl);
+      if (visibleProtons > 0) {
+        if (visibleProtons <= 8) {
+          // nur ein Kreis
+          for (let j = 0; j < visibleProtons; j++) {
+            const angle = (2 * Math.PI * j) / visibleProtons;
+            const px = centerX + outerRadius * Math.cos(angle);
+            const py = centerY + outerRadius * Math.sin(angle);
+            const pEl = document.createElement("div");
+            pEl.className = "proton-dot";
+            pEl.style.left = `${px}px`;
+            pEl.style.top = `${py}px`;
+            atomVisualEl.appendChild(pEl);
+          }
+        } else {
+          // zwei Kreise: erst innen bis 8, rest außen
+          const innerCount = 8;
+          const outerCount = visibleProtons - innerCount;
+
+          for (let j = 0; j < innerCount; j++) {
+            const angle = (2 * Math.PI * j) / innerCount;
+            const px = centerX + innerRadius * Math.cos(angle);
+            const py = centerY + innerRadius * Math.sin(angle);
+            const pEl = document.createElement("div");
+            pEl.className = "proton-dot";
+            pEl.style.left = `${px}px`;
+            pEl.style.top = `${py}px`;
+            atomVisualEl.appendChild(pEl);
+          }
+
+          for (let j = 0; j < outerCount; j++) {
+            const angle = (2 * Math.PI * j) / outerCount;
+            const px = centerX + outerRadius * Math.cos(angle);
+            const py = centerY + outerRadius * Math.sin(angle);
+            const pEl = document.createElement("div");
+            pEl.className = "proton-dot";
+            pEl.style.left = `${px}px`;
+            pEl.style.top = `${py}px`;
+            atomVisualEl.appendChild(pEl);
+          }
+        }
       }
 
-      nucleusLabelEl.innerHTML = `<strong>p⁺ = ${protons}</strong><br>e⁻ = ${electrons}`;
+      // Anzeige rechts neben dem Atom
+      nucleusLabelEl.innerHTML = `
+        <div class="nucleus-info-line">
+          <span class="nucleus-info-label">Kernladung / Hülle</span>
+          <div><span class="proton-text">p⁺ = ${protons}</span></div>
+          <div><span class="electron-text">e⁻ = ${electrons}</span></div>
+        </div>
+      `;
     }
 
     function updateUI() {
