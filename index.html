@@ -272,6 +272,7 @@
       overflow: visible;
     }
 
+    /* Kern jetzt nur als Kreis (Outline) */
     .nucleus {
       position: absolute;
       left: 50%;
@@ -280,7 +281,7 @@
       width: 80px;
       height: 80px;
       border-radius: 50%;
-      background: radial-gradient(circle at top, #f97316 0, #b91c1c 60%, #7f1d1d 100%);
+      background: transparent;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -288,7 +289,7 @@
       color: #fef2f2;
       font-size: 0.75rem;
       text-align: center;
-      border: 2px solid rgba(248, 250, 252, 0.4);
+      border: 2px solid rgba(248, 250, 252, 0.8);
     }
 
     .nucleus strong {
@@ -309,6 +310,17 @@
       border-radius: 50%;
       background: #38bdf8;
       box-shadow: 0 0 10px #38bdf8;
+      transform: translate(-50%, -50%);
+    }
+
+    /* Protonen-Punkte im Kern */
+    .proton-dot {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #f97316;
+      box-shadow: 0 0 6px #f97316;
       transform: translate(-50%, -50%);
     }
 
@@ -366,20 +378,19 @@
     }
 
     /* Roter Button für +Proton */
-.add-proton-red {
-  background: #dc2626; /* Rot */
-  color: #fff;         /* Weißer Text */
-  border: 1px solid #7f1d1d;
-}
+    .add-proton-red {
+      background: #dc2626; /* Rot */
+      color: #fff;         /* Weißer Text */
+      border: 1px solid #7f1d1d;
+    }
 
-.add-proton-red:hover {
-  background: #ef4444; /* etwas helleres Rot beim Hover */
-}
+    .add-proton-red:hover {
+      background: #ef4444; /* etwas helleres Rot beim Hover */
+    }
 
-.add-proton-red:active {
-  background: #b91c1c; /* dunkler beim Drücken */
-}
-    
+    .add-proton-red:active {
+      background: #b91c1c; /* dunkler beim Drücken */
+    }
   </style>
 </head>
 <body>
@@ -443,9 +454,9 @@
         </div>
 
         <div class="controls-grid">
-       <button id="addProton" class="add-proton-red">
-        1 Proton dazu
-        </button>
+          <button id="addProton" class="add-proton-red">
+            1 Proton dazu
+          </button>
           <button id="removeProton" class="secondary">
             1 Proton weg
           </button>
@@ -479,12 +490,14 @@
               <strong>p⁺ = 0</strong>
               e⁻ = 0
             </div>
-            <!-- Schalen & Elektronen werden per JavaScript eingefügt -->
+            <!-- Schalen, Elektronen & Protonen werden per JavaScript eingefügt -->
           </div>
         </div>
 
         <div style="font-size:0.85rem;color:#9ca3af;margin-top:0.3rem;">
-          Vereinfachtes Bohr-Modell
+          Vereinfachtes Bohr-Modell. Bitte denk daran: Atomkern und Atomhülle sind
+          in Wirklichkeit sehr weit voneinander entfernt! Neutronen werden nicht
+          dargestellt, weil es hier um die elektrische Ladung geht.
         </div>
 
         <div class="pse-wrapper">
@@ -558,7 +571,7 @@
       54: "Xenon wird in Hochleistungsblitzlampen und in Ionenantrieben für Raumsonden verwendet."
     };
 
-    // Aufgaben
+    // Aufgaben (jetzt 10)
     const LEVELS = [
       {
         description: "Baue ein neutrales Helium-Atom.",
@@ -608,6 +621,27 @@
         symbol: "O²⁻",
         targetProtons: 8,
         targetElectrons: 10
+      },
+      {
+        description: "Baue ein neutrales Magnesium-Atom.",
+        type: "neutrales Atom",
+        symbol: "Mg",
+        targetProtons: 12,
+        targetElectrons: 12
+      },
+      {
+        description: "Baue ein neutrales Chlor-Atom.",
+        type: "neutrales Atom",
+        symbol: "Cl",
+        targetProtons: 17,
+        targetElectrons: 17
+      },
+      {
+        description: "Baue ein neutrales Eisen-Atom.",
+        type: "neutrales Atom",
+        symbol: "Fe",
+        targetProtons: 26,
+        targetElectrons: 26
       }
     ];
 
@@ -693,10 +727,10 @@
       elementFactEl.textContent = "";
     }
 
-    // Atom zeichnen
+    // Atom zeichnen (Schalen, Elektronen, Protonen im Kern)
     function renderAtom() {
-      const shellsAndElectrons = atomVisualEl.querySelectorAll(".shell, .electron");
-      shellsAndElectrons.forEach(el => el.remove());
+      const oldStuff = atomVisualEl.querySelectorAll(".shell, .electron, .proton-dot");
+      oldStuff.forEach(el => el.remove());
 
       const maxShells = 3;
       const shellCapacities = [2, 8, 8];
@@ -706,6 +740,7 @@
       const centerY = 130;
       const radii = [55, 90, 125];
 
+      // Schalen + Elektronen
       for (let i = 0; i < maxShells; i++) {
         const shell = document.createElement("div");
         const r = radii[i];
@@ -729,6 +764,22 @@
           eEl.style.top = `${ey}px`;
           atomVisualEl.appendChild(eEl);
         }
+      }
+
+      // Protonen-Kringel im Kern (max. 16 sichtbar)
+      const maxVisibleProtons = 16;
+      const visibleProtons = Math.min(protons, maxVisibleProtons);
+      const protonRadius = 26; // kleiner Kreis innerhalb des Kerns
+
+      for (let j = 0; j < visibleProtons; j++) {
+        const angle = (2 * Math.PI * j) / (visibleProtons || 1);
+        const px = centerX + protonRadius * Math.cos(angle);
+        const py = centerY + protonRadius * Math.sin(angle);
+        const pEl = document.createElement("div");
+        pEl.className = "proton-dot";
+        pEl.style.left = `${px}px`;
+        pEl.style.top = `${py}px`;
+        atomVisualEl.appendChild(pEl);
       }
 
       nucleusLabelEl.innerHTML = `<strong>p⁺ = ${protons}</strong><br>e⁻ = ${electrons}`;
