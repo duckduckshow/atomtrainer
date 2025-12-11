@@ -309,6 +309,36 @@
       border: 1px solid rgba(148, 163, 184, 0.4);
       color: #cbd5f5;
     }
+
+    .fact {
+      margin-top: 0.55rem;
+      font-size: 0.85rem;
+      color: #e5e7eb;
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 0.6rem;
+      padding: 0.5rem 0.6rem;
+      border: 1px dashed rgba(148, 163, 184, 0.5);
+    }
+
+    .score-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.4rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .score-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #9ca3af;
+    }
+
+    .score-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #facc15;
+    }
   </style>
 </head>
 <body>
@@ -329,11 +359,18 @@
           <div class="chip" id="taskTypeChip"></div>
           <div class="chip" id="taskTargetChip"></div>
         </div>
+        <div class="fact" id="elementFact" style="display:none;"></div>
         <div class="level-indicator" id="levelIndicator"></div>
       </div>
 
       <div class="control-box">
         <div class="panel-title">Steuerung</div>
+
+        <div class="score-row">
+          <div class="score-label">Punkte</div>
+          <div class="score-value" id="scoreDisplay">0</div>
+        </div>
+
         <div class="stats-grid" style="margin-bottom:0.5rem;">
           <div class="stat">
             <div class="stat-label">Protonen (p⁺)</div>
@@ -376,6 +413,9 @@
           </button>
           <button id="removeElectron" class="secondary">
             <span class="icon">−</span> Elektron
+          </button>
+          <button id="checkSolutionBtn" class="secondary">
+            Lösung prüfen
           </button>
           <button id="resetLevel" class="secondary">
             Zurücksetzen
@@ -433,6 +473,15 @@
       18: "Argon (Ar)",
       19: "Kalium (K)",
       20: "Calcium (Ca)"
+    };
+
+    // Fun-Facts zu ausgewählten Elementen (nach Protonenzahl)
+    const ELEMENT_FACTS = {
+      2: "Helium macht Ballons leichter als Luft und wird auch in der Medizin als Atemgas-Mischung verwendet.",
+      8: "Etwa ein Fünftel der Luft besteht aus Sauerstoff – ohne ihn könnten wir nicht atmen.",
+      11: "Natrium reagiert mit Wasser sehr heftig und steckt im ganz normalen Kochsalz (NaCl).",
+      12: "Magnesium brennt mit einem sehr hellen weißen Licht und wird in Feuerwerken eingesetzt.",
+      17: "Chlor wird zur Desinfektion von Schwimmbädern genutzt – als Gas ist es aber giftig."
     };
 
     // Aufgaben: Du kannst hier leicht weitere hinzufügen oder ändern
@@ -493,6 +542,8 @@
     let currentLevelIndex = 0;
     let protons = 0;
     let electrons = 0;
+    let score = 0;
+    let levelAlreadySolved = false;
 
     // --- DOM-Elemente --------------------------------------------------------
 
@@ -500,6 +551,7 @@
     const taskTypeChipEl = document.getElementById("taskTypeChip");
     const taskTargetChipEl = document.getElementById("taskTargetChip");
     const levelIndicatorEl = document.getElementById("levelIndicator");
+    const elementFactEl = document.getElementById("elementFact");
 
     const protonCountEl = document.getElementById("protonCount");
     const electronCountEl = document.getElementById("electronCount");
@@ -508,6 +560,7 @@
     const chargeDisplayEl = document.getElementById("chargeDisplay");
     const targetInfoEl = document.getElementById("targetInfo");
     const feedbackEl = document.getElementById("feedback");
+    const scoreDisplayEl = document.getElementById("scoreDisplay");
 
     const atomVisualEl = document.getElementById("atomVisual");
     const nucleusLabelEl = document.getElementById("nucleusLabel");
@@ -518,6 +571,7 @@
     const removeElectronBtn = document.getElementById("removeElectron");
     const resetLevelBtn = document.getElementById("resetLevel");
     const nextLevelBtn = document.getElementById("nextLevel");
+    const checkSolutionBtn = document.getElementById("checkSolutionBtn");
 
     // --- Hilfsfunktionen -----------------------------------------------------
 
@@ -552,9 +606,25 @@
       feedbackEl.classList.remove("ok", "error");
     }
 
+    function showFactForCurrentLevel() {
+      const level = LEVELS[currentLevelIndex];
+      const fact = ELEMENT_FACTS[level.targetProtons];
+      if (fact) {
+        elementFactEl.textContent = "Fun-Fact: " + fact;
+        elementFactEl.style.display = "block";
+      } else {
+        elementFactEl.style.display = "none";
+        elementFactEl.textContent = "";
+      }
+    }
+
+    function hideFact() {
+      elementFactEl.style.display = "none";
+      elementFactEl.textContent = "";
+    }
+
     // Zeichnet Bohr-Schalen mit bis zu 3 Schalen
     function renderAtom() {
-      // Vorhandene Schalen & Elektronen entfernen (aber nicht den Kern)
       const shellsAndElectrons = atomVisualEl.querySelectorAll(".shell, .electron");
       shellsAndElectrons.forEach(el => el.remove());
 
@@ -581,7 +651,7 @@
         remainingElectrons -= electronsInShell;
 
         for (let j = 0; j < electronsInShell; j++) {
-          const angle = (2 * Math.PI * j) / electronsInShell;
+          const angle = (2 * Math.PI * j) / (electronsInShell || 1);
           const ex = centerX + r * Math.cos(angle);
           const ey = centerY + r * Math.sin(angle);
           const eEl = document.createElement("div");
@@ -592,7 +662,6 @@
         }
       }
 
-      // Kernbeschriftung
       nucleusLabelEl.innerHTML = `<strong>p⁺ = ${protons}</strong><br>e⁻ = ${electrons}`;
     }
 
@@ -623,8 +692,34 @@
         `Ziel: p⁺ = ${level.targetProtons}, e⁻ = ${level.targetElectrons} (Ladung ${formatCharge(level.targetProtons - level.targetElectrons)})`;
 
       renderAtom();
+    }
 
-      checkSolution(false);
+    function checkSolution(showFeedback = true, allowScoring = true) {
+      const level = LEVELS[currentLevelIndex];
+      const solved = protons === level.targetProtons && electrons === level.targetElectrons;
+
+      if (solved) {
+        nextLevelBtn.disabled = false;
+        showFactForCurrentLevel();
+
+        if (allowScoring && !levelAlreadySolved) {
+          levelAlreadySolved = true;
+          score++;
+          scoreDisplayEl.textContent = score;
+          if (showFeedback) {
+            setFeedbackOk("Richtig! +1 Punkt ✅");
+          }
+        } else if (showFeedback) {
+          setFeedbackOk("Richtig gelöst ✅");
+        }
+      } else {
+        nextLevelBtn.disabled = true;
+        if (showFeedback) {
+          setFeedbackError("Noch nicht ganz richtig. Vergleiche Soll- und Ist-Werte.");
+        }
+        // Fun-Fact bleibt sichtbar, wenn man nach der Lösung noch herumprobiert
+      }
+      return solved;
     }
 
     function loadLevel(index) {
@@ -636,30 +731,14 @@
       taskTargetChipEl.textContent = `Symbol: ${level.symbol}`;
       levelIndicatorEl.innerHTML = `Aufgabe <strong>${currentLevelIndex + 1}</strong> von <strong>${LEVELS.length}</strong>`;
 
-      // sinnvolle Startwerte: neutrales Atom des Elements
-      protons = level.targetProtons;
-      electrons = level.type.includes("neutrales") ? level.targetProtons : level.targetElectrons;
-
+      // Startwerte: jetzt NICHT mehr die Lösung – man fängt bei 0 an
+      protons = 0;
+      electrons = 0;
+      levelAlreadySolved = false;
+      nextLevelBtn.disabled = true;
+      hideFact();
       clearFeedback();
-      nextLevelBtn.disabled = false;
       updateUI();
-    }
-
-    function checkSolution(showFeedback = true) {
-      const level = LEVELS[currentLevelIndex];
-      const solved = protons === level.targetProtons && electrons === level.targetElectrons;
-
-      if (solved) {
-        if (showFeedback) {
-          setFeedbackOk("Richtig! Aufgabe gelöst ✅");
-        }
-        nextLevelBtn.disabled = false;
-      } else {
-        if (showFeedback) {
-          setFeedbackError("Noch nicht richtig. Vergleiche Soll- und Ist-Werte.");
-        }
-      }
-      return solved;
     }
 
     // --- Event-Handler -------------------------------------------------------
@@ -682,7 +761,6 @@
     });
 
     addElectronBtn.addEventListener("click", () => {
-      // Etwas Spielraum, aber nicht unendlich
       if (electrons >= 24) {
         setFeedbackError("Zu viele Elektronen für dieses Modell.");
         return;
@@ -700,18 +778,21 @@
     });
 
     resetLevelBtn.addEventListener("click", () => {
-      const level = LEVELS[currentLevelIndex];
-      protons = level.targetProtons;
-      electrons = level.type.includes("neutrales") ? level.targetProtons : level.targetElectrons;
+      protons = 0;
+      electrons = 0;
       clearFeedback();
       updateUI();
+      nextLevelBtn.disabled = !levelAlreadySolved;
+    });
+
+    checkSolutionBtn.addEventListener("click", () => {
+      checkSolution(true, true);
     });
 
     nextLevelBtn.addEventListener("click", () => {
-      const wasSolved = checkSolution(false);
+      const wasSolved = checkSolution(false, false);
       if (!wasSolved) {
-        // einfache Rückmeldung, optional
-        setFeedbackError("Versuch's noch einmal – die Aufgabe ist noch nicht gelöst.");
+        setFeedbackError("Die Aufgabe ist noch nicht gelöst – zuerst prüfen!");
         return;
       }
       const nextIndex = (currentLevelIndex + 1) % LEVELS.length;
